@@ -1,0 +1,49 @@
+@startuml
+actor user
+queue http_req_queue
+
+queue user_wallet_result_topic_x
+
+component wallet_service #aliceblue;line:green;line.dotted;text:green
+
+component wb_service #aliceblue;line:green;line.dotted;text:green
+
+user --> wallet_service
+
+wallet_service ..> http_req_queue
+
+component http_req_queue_consumer
+
+component kafka_producer
+
+http_req_queue ..> http_req_queue_consumer
+
+storage wallet_cache
+http_req_queue_consumer ..> wallet_cache
+wallet_cache --> kafka_producer
+kafka_producer ..> "product" user_wallet_result_topic_x
+
+wb_service "subscribe" <-- user_wallet_result_topic_x
+
+component writeDBTicker #aliceblue;line:blue;line.dotted;text:blue
+component dumpTicker #aliceblue;line:blue;line.dotted;text:blue
+
+wb_service ..> writeDBTicker
+wb_service ..> dumpTicker
+
+
+note right of http_req_queue
+以用户尾号分片的串行队列
+end note
+
+note right of wallet_cache
+用户钱包，计算内存
+end note
+
+note left of wallet_service
+用户钱包http服务
+end note
+
+
+
+@enduml
