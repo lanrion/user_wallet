@@ -40,12 +40,14 @@ func (j *Job) Process(csm Consumer) {
 		j.Err = wallet.Withdraw(j.Amount)
 	case Transfer:
 		j.Err = wallet.Transfer(j.ToUserID, j.Amount)
-		toWallet := BucketManager.Fetch(j.ToUserID)
-		pd := kfkmodule.PushData{
-			UID:     j.ToUserID,
-			Balance: toWallet.balance,
+		if j.Err != nil {
+			toWallet := BucketManager.Fetch(j.ToUserID)
+			pd := kfkmodule.PushData{
+				UID:     j.ToUserID,
+				Balance: toWallet.balance,
+			}
+			csm.Produce(&pd)
 		}
-		csm.Produce(&pd)
 	}
 	if j.Err != nil {
 		return

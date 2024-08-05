@@ -5,11 +5,23 @@ import (
 	"testing"
 )
 
+func TestMain(m *testing.M) {
+	BucketManager = NewBucket(nil)
+	m.Run()
+}
+
 func TestOperation_String(t *testing.T) {
 	e := Deposit.String()
 	assert.Equal(t, "Deposit", e)
 	e = Operation(33333).String()
 	assert.Equal(t, "Unknown", e)
+
+	e = Transfer.String()
+	assert.Equal(t, "Transfer", e)
+
+	e = Withdraw.String()
+	assert.Equal(t, "Withdraw", e)
+
 }
 
 func TestBucket_Fetch(t *testing.T) {

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"user_wallet/pkg/internal/dump"
+	"user_wallet/pkg/internal/kfkmodule"
 )
 
 var (
@@ -26,9 +27,13 @@ func Run(userShard int32) {
 
 	BucketManager = NewBucket(walletData)
 
-	ps := NewPusher(userShard, []string{"localhost:9092"}, 10000)
+	kfkProducer, err := kfkmodule.NewProducer(userShard, []string{"localhost:9092"})
+	if err != nil {
+		log.Fatal(err)
+	}
+	ps := NewPusher(userShard, kfkProducer, 10000)
 	reqConsumer = NewConsumer(ps)
-	err := reqConsumer.Start()
+	err = reqConsumer.Start()
 	if err != nil {
 		log.Fatalf("Failed to start consumer: %v", err)
 	}

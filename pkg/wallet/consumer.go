@@ -17,10 +17,10 @@ type Consumer interface {
 
 type consumer struct {
 	queue  map[uint32]chan *Job // TODO 可以再拆小一点
-	pusher *Pusher
+	pusher Pusher
 }
 
-func NewConsumer(ps *Pusher) Consumer {
+func NewConsumer(ps Pusher) Consumer {
 	queue := make(map[uint32]chan *Job)
 
 	return &consumer{queue: queue, pusher: ps}
@@ -28,7 +28,7 @@ func NewConsumer(ps *Pusher) Consumer {
 
 func (c *consumer) Start() error {
 	for i := 0; i < userIdIdx; i++ {
-		idxCh := make(chan *Job, 1000)
+		idxCh := make(chan *Job, 10000)
 		c.queue[uint32(i)] = idxCh
 		go func() {
 			for {

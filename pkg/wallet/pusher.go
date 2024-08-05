@@ -2,25 +2,24 @@ package wallet
 
 import (
 	"encoding/json"
-	"log"
 	"user_wallet/pkg/internal/kfkmodule"
 )
 
-type Pusher struct {
-	noticeCah   chan *kfkmodule.PushData // todo 分片
+type Pusher interface {
+	PushWallet(d *kfkmodule.PushData)
+}
+
+type pusher struct {
+	noticeChan  chan *kfkmodule.PushData // todo 分片
 	kfkProducer kfkmodule.KfkProducer
 }
 
-func NewPusher(userShard int32, kfkAddrs []string, size int) *Pusher {
-	kfkProducer, err := kfkmodule.NewProducer(userShard, kfkAddrs)
-	if err != nil {
-		log.Fatal(err)
-	}
-	p := Pusher{noticeCah: make(chan *kfkmodule.PushData, size), kfkProducer: kfkProducer}
+func NewPusher(userShard int32, kfkProducer kfkmodule.KfkProducer, size int) Pusher {
+	p := pusher{noticeChan: make(chan *kfkmodule.PushData, size), kfkProducer: kfkProducer}
 	go func() {
-		for wallet := range p.noticeCah {
+		for wallet := range p.noticeChan {
 			b, _ := json.Marshal(&wallet)
-			err = p.kfkProducer.SendMessage(b)
+			err := p.kfkProducer.SendMessage(b)
 			if err != nil {
 				panic(err)
 			}
@@ -29,6 +28,6 @@ func NewPusher(userShard int32, kfkAddrs []string, size int) *Pusher {
 	return &p
 }
 
-func (p *Pusher) PushWallet(d *kfkmodule.PushData) {
-	p.noticeCah <- d
+func (p *pusher) PushWallet(d *kfkmodule.PushData) {
+	p.noticeChan <- d
 }
