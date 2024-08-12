@@ -30,14 +30,14 @@ func (c *consumer) Start() error {
 	for i := 0; i < userIdIdx; i++ {
 		idxCh := make(chan *Job, 10000)
 		c.queue[uint32(i)] = idxCh
-		go func() {
+		go func(ch chan *Job) {
 			for {
 				select {
-				case jobData := <-idxCh:
+				case jobData := <-ch:
 					jobData.Process(c)
 				}
 			}
-		}()
+		}(idxCh)
 	}
 	return nil
 }
